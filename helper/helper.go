@@ -5,12 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/jordan-wright/email"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"im/define"
+	"net/smtp"
 )
 
 var myKey = []byte("im")
 
 type UserClaims struct {
-	Identity string
+	//Identity string
+	Identity primitive.ObjectID
 	Email    string
 	jwt.StandardClaims
 }
@@ -21,8 +26,9 @@ func Md5(s string) string {
 }
 
 func GenerateToken(identity, email string) (string, error) {
+	objectID, _ := primitive.ObjectIDFromHex(identity)
 	claim := &UserClaims{
-		Identity:       identity,
+		Identity:       objectID,
 		Email:          email,
 		StandardClaims: jwt.StandardClaims{}, // 暂时未做刷新处理
 	}
@@ -45,4 +51,21 @@ func AnalyseToken(tokenString string) (*UserClaims, error) {
 		return claim, nil
 	}
 	return nil, errors.New("token错误")
+}
+
+func MailSendCode(toUserEmail string, code string) error {
+	e := email.NewEmail()
+	e.From = "Get <949244762@qq.com>"
+	e.To = []string{toUserEmail}
+	e.Subject = "验证码已发送，请查收"
+	e.HTML = []byte("您的验证码：<b>" + code + "</b>")
+	//e.SendWithTLS("smtp.163.com:465",
+	//	smtp.PlainAuth("", "getcharzhaopan@163.com", define.MailPassword, "smtp.163.com"),
+	//	&tls.Config{InsecureSkipVerify: true, ServerName: "smtp.163.com"})
+	err := e.Send("smtp.qq.com:587", smtp.PlainAuth("", "949244762@qq.com", define.MailPassword, "smtp.qq.com"))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
