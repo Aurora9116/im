@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jordan-wright/email"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"im/define"
 	"net/smtp"
 )
@@ -14,9 +13,9 @@ import (
 var myKey = []byte("im")
 
 type UserClaims struct {
-	//Identity string
-	Identity primitive.ObjectID
-	Email    string
+	Identity string
+	//Identity primitive.ObjectID
+	Email string
 	jwt.StandardClaims
 }
 
@@ -26,9 +25,8 @@ func Md5(s string) string {
 }
 
 func GenerateToken(identity, email string) (string, error) {
-	objectID, _ := primitive.ObjectIDFromHex(identity)
 	claim := &UserClaims{
-		Identity:       objectID,
+		Identity:       identity,
 		Email:          email,
 		StandardClaims: jwt.StandardClaims{}, // 暂时未做刷新处理
 	}

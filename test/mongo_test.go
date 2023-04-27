@@ -35,10 +35,17 @@ func TestFind(t *testing.T) {
 		t.Fatal(err)
 	}
 	db := client.Database("im")
-	ub := new(models.UserBasic)
-	err = db.Collection("user_basic").FindOne(context.Background(), bson.D{}).Decode(ub)
-	if err != nil {
-		t.Fatal(err)
+	cursor, err := db.Collection("user_room").Find(context.Background(), bson.D{})
+	urs := make([]*models.UserRoom, 0)
+	for cursor.Next(context.Background()) {
+		ub := new(models.UserRoom)
+		err := cursor.Decode(ub)
+		if err != nil {
+			t.Fatal(err)
+		}
+		urs = append(urs, ub)
 	}
-	fmt.Println("ub ==>", ub)
+	for _, value := range urs {
+		fmt.Println("UserRoom =>", value)
+	}
 }
